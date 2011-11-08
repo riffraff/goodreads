@@ -22,6 +22,11 @@ module Goodreads
       Hashie::Mash.new(data['search'])
     end
     
+    # Get review list for user ID
+    def review_list(user_id)
+      Hashie::Mash.new(request('/review/list/'+user_id))
+    end
+
     # Get book details by Goodreads book ID
     def book(id)
       Hashie::Mash.new(request('/book/show', :id => id)['book'])
