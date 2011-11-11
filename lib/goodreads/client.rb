@@ -24,8 +24,7 @@ module Goodreads
     
     # Get review list for user ID
     def review_list(user_id, opts={})
-      opts=opts.merge(:id => user_id)
-      Hashie::Mash.new(request('/review/list', opts))
+      Hashie::Mash.new(request("/review/list/#{user_id}", opts))
     end
 
     # Get book details by Goodreads book ID
