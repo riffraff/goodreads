@@ -30,7 +30,34 @@ describe 'Client' do
          
     proc { @client.book_by_isbn('123456789') }.should raise_error Goodreads::NotFound
   end
+
+  it 'should keep body and status in the exception' do
+    stub_request(:get, "http://www.goodreads.com/book/isbn?format=xml&isbn=123456789&key=SECRET_KEY").
+      to_return(:status => 404, :body => "some error", :headers => {})
+         
+    proc { @client.book_by_isbn('123456789') }.should raise_error Goodreads::NotFound, "404\nsome error"
+  end
   
+  it 'should handle Forbidden ' do
+    stub_request(:get, "http://www.goodreads.com/book/isbn?format=xml&isbn=123456789&key=SECRET_KEY").
+      to_return(:status => 403, :body => "<status>forbidden</status>", :headers => {})
+         
+    proc { @client.book_by_isbn('123456789') }.should( 
+      raise_error Goodreads::Forbidden, "403\n<status>forbidden</status>")
+  end
+
+  it 'should handle random server errors ' do
+    stub_request(:get, "http://www.goodreads.com/book/isbn?format=xml&isbn=123456789&key=SECRET_KEY").
+      to_return(:status => 503, :body => "....", :headers => {})
+         
+    proc { @client.book_by_isbn('123456789') }.should( 
+      raise_error Goodreads::ServerError, "503\n....")
+    stub_request(:get, "http://www.goodreads.com/book/isbn?format=xml&isbn=123456789&key=SECRET_KEY").
+      to_return(:status => 413, :body => "....", :headers => {})
+    proc { @client.book_by_isbn('123456789') }.should( 
+      raise_error Goodreads::ServerError, "413\n....")
+  end
+
   it 'should return recent reviews' do
     stub_with_key_get('/review/recent_reviews', {}, 'recent_reviews.xml')
     

@@ -85,13 +85,20 @@ module Goodreads
           when 200
             response.return!(request, result, &block)
           when 401
-            raise Goodreads::Unauthorized
+            raise Goodreads::Unauthorized.from_response(response)
+          when 403
+            raise Goodreads::Forbidden.from_response(response)
           when 404
-            raise Goodreads::NotFound
+            raise Goodreads::NotFound.from_response(response)
+          else
+            if response.code / 100 == 4 || response.code / 100 == 5
+              raise Goodreads::ServerError.from_response(response)
+            end
         end
       }
       
-      hash = Hash.from_xml(resp)['GoodreadsResponse']
+      hash_resp = Hash.from_xml(resp)
+      hash = hash_resp['GoodreadsResponse']
       hash.delete('Request')
       hash
     end
